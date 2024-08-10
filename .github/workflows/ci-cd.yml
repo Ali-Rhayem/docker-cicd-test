@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Docker Container
         run: |
-          docker run -d -p 8000:8000 --name cicd-test-container alirhyem/docker-cicd-test:${{ github.sha }}
+          docker run -d -p 8000:8000 --name cicd-test-container alirhayem/docker-cicd-test:${{ github.sha }}
 
       - name: Test Docker Container
         run: |
