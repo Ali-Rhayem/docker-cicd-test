@@ -45,5 +45,5 @@ jobs:
           docker stop docker-cicd-test || true
           docker rm docker-cicd-test || true
           sleep 5  # Add a delay to ensure the container is fully removed
-          docker pull alirhayem/docker-cicd-test:latest
-          docker run -d -p 8000:8000 --name docker-cicd-test alirhayem/docker-cicd-test:latest
+          docker pull ***/docker-cicd-test:latest
+          docker run -d -p 8000:8000 --name docker-cicd-test ***/docker-cicd-test:latest
