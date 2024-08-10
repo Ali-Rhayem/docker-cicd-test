@@ -7,43 +7,31 @@ on:
 
 jobs:
   build-and-deploy:
-    name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Check out the latest code
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 3: Pull the latest image from Docker Hub (Optional)
-      # This step ensures that you have the latest image if needed for incremental builds or caching.
-      - name: Pull Latest Docker Image
-        run: |
-          docker pull alirhayem/docker-cicd-test:latest || true
-
-      # Step 4: Build the Docker image from the Dockerfile
-      - name: Build Docker Image
+      - name: Build Docker image
         run: |
           docker build --no-cache -t alirhayem/docker-cicd-test:${{ github.sha }} -t alirhayem/docker-cicd-test:latest .
 
-      # Step 5: Push the Docker image to Docker Hub
-      - name: Push Docker Image
+      - name: Push Docker image
         run: |
           docker push alirhayem/docker-cicd-test:${{ github.sha }}
           docker push alirhayem/docker-cicd-test:latest
 
-      # Step 6: Run the Docker container
-      - name: Run Docker Container
+      - name: Run Docker container
         run: |
           docker stop docker-cicd-test || true
           docker rm docker-cicd-test || true
           sleep 5  # Add a delay to ensure the container is fully removed
-          docker pull ***/docker-cicd-test:latest
-          docker run -d -p 8000:8000 --name docker-cicd-test ***/docker-cicd-test:latest
+          docker pull alirhayem/docker-cicd-test:latest
+          docker run -d -p 8000:8000 --name docker-cicd-test alirhayem/docker-cicd-test:latest
