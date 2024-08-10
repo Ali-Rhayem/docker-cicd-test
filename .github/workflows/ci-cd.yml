@@ -1,4 +1,4 @@
-name: Test Docker Pull and Run
+name: CI/CD Pipeline
 
 on:
   push:
@@ -6,17 +6,35 @@ on:
       - main
 
 jobs:
-  test-docker:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Pull and Run Docker Container
+      - name: Build Docker image
+        run: |
+          docker build --no-cache -t alirhayem/docker-cicd-test:${{ github.sha }} -t alirhayem/docker-cicd-test:latest .
+
+      - name: Push Docker image
+        run: |
+          docker push alirhayem/docker-cicd-test:${{ github.sha }}
+          docker push alirhayem/docker-cicd-test:latest
+
+      - name: Stop and remove existing Docker container (if exists)
+        run: |
+          docker stop docker-cicd-test || true
+          docker rm docker-cicd-test || true
+          sleep 5  # Add a delay to ensure the container is fully removed
+
+      - name: Pull and run Docker container
         run: |
           docker pull alirhayem/docker-cicd-test:latest
           docker run -d -p 8000:8000 --name docker-cicd-test alirhayem/docker-cicd-test:latest
