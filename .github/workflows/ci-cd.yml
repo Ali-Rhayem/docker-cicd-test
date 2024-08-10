@@ -28,13 +28,33 @@ jobs:
           docker push alirhayem/docker-cicd-test:${{ github.sha }}
           docker push alirhayem/docker-cicd-test:latest
 
+      - name: Check Docker daemon status
+        run: |
+          docker info
+
       - name: Stop and remove existing Docker container (if exists)
         run: |
-          docker stop docker-cicd-test || true
-          docker rm docker-cicd-test || true
+          echo "Stopping container if it exists..."
+          if [ $(docker ps -q -f name=docker-cicd-test) ]; then
+            docker stop docker-cicd-test
+            echo "Container stopped."
+          else
+            echo "Container not running."
+          fi
+          echo "Removing container if it exists..."
+          if [ $(docker ps -a -q -f name=docker-cicd-test) ]; then
+            docker rm docker-cicd-test
+            echo "Container removed."
+          else
+            echo "Container not found."
+          fi
           sleep 5  # Add a delay to ensure the container is fully removed
 
       - name: Pull and run Docker container
         run: |
           docker pull alirhayem/docker-cicd-test:latest
           docker run -d -p 8000:8000 --name docker-cicd-test alirhayem/docker-cicd-test:latest
+
+      - name: Inspect Docker logs
+        run: |
+          docker logs docker-cicd-test
