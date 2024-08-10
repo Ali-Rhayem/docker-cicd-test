@@ -1,47 +1,47 @@
-name: Publish Docker image
+name: CI/CD Pipeline
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 
 jobs:
-  push_to_registry:
-    name: Push Docker image to Docker Hub
+  build-and-deploy:
+    name: Build and Deploy to Docker Hub
     runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-      attestations: write
-      id-token: write
-    steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4
 
+    steps:
+      # Step 1: Check out the latest code
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Log in to Docker Hub
       - name: Log in to Docker Hub
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-        with:
-          images: alirhayem/docker-cicd-test  # Replace with your actual Docker Hub repository
+      # Step 3: Pull the latest image from Docker Hub (Optional)
+      # This step ensures that you have the latest image if needed for incremental builds or caching.
+      - name: Pull Latest Docker Image
+        run: |
+          docker pull alirhayem/docker-cicd-test:latest || true
 
-      - name: Build and push Docker image
-        id: push
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671
-        with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+      # Step 4: Build the Docker image from the Dockerfile
+      - name: Build Docker Image
+        run: |
+          docker build -t alirhayem/docker-cicd-test:${{ github.sha }} -t alirhayem/docker-cicd-test:latest .
 
-      - name: Generate artifact attestation
-        uses: actions/attest-build-provenance@v1
-        with:
-          subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
+      # Step 5: Push the Docker image to Docker Hub
+      - name: Push Docker Image
+        run: |
+          docker push alirhayem/docker-cicd-test:${{ github.sha }}
+          docker push alirhayem/docker-cicd-test:latest
+
+      # Step 6: Run the Docker container
+      - name: Run Docker Container
+        run: |
+          docker stop cicd-test-container || true
+          docker rm cicd-test-container || true
+          docker run -d -p 8000:8000 --name cicd-test-container alirhayem/docker-cicd-test:latest
