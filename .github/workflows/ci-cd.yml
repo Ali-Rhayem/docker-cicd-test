@@ -28,10 +28,9 @@ jobs:
           docker push alirhayem/docker-cicd-test:${{ github.sha }}
           docker push alirhayem/docker-cicd-test:latest
 
-      - name: Stop and remove existing Docker container (if exists)
+      - name: Force stop and remove existing Docker container (if exists)
         run: |
-          docker stop docker-cicd-test || true
-          docker rm docker-cicd-test || true
+          docker rm -f docker-cicd-test || true
           sleep 5  # Add a delay to ensure the container is fully removed
 
       - name: Pull and run Docker container
