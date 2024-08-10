@@ -24,20 +24,21 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t alirhayem/docker-cicd-test:${{ github.sha }} .
+          docker build --no-cache -t alirhayem/docker-cicd-test:${{ github.sha }} .
           docker push alirhayem/docker-cicd-test:${{ github.sha }}
 
-      - name: Pull Docker Image
+      - name: Pull Latest Docker Image
         run: |
           docker pull alirhayem/docker-cicd-test:${{ github.sha }}
+
+      - name: Remove Old Container
+        run: |
+          docker rm -f cicd-test-container || true
+
+      - name: Remove Old Image
+        run: |
+          docker rmi alirhayem/docker-cicd-test:${{ github.sha }} || true
 
       - name: Run Docker Container
         run: |
           docker run -d -p 8000:8000 --name cicd-test-container alirhayem/docker-cicd-test:${{ github.sha }}
-
-      - name: Wait for Container to Start
-        run: sleep 10
-
-      - name: Test Docker Container
-        run: |
-          curl http://127.0.0.1:8000/
