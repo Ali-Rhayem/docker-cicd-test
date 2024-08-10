@@ -11,18 +11,30 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t alirhayem/docker-cicd-test .
-          docker push alirhayem/docker-cicd-test
+          docker build -t alirhayem/docker-cicd-test:${{ github.sha }} .
+          docker push alirhayem/docker-cicd-test:${{ github.sha }}
+
+      - name: Pull Docker Image
+        run: |
+          docker pull alirhayem/docker-cicd-test:${{ github.sha }}
+
+      - name: Run Docker Container
+        run: |
+          docker run -d -p 8000:8000 --name cicd-test-container alirhyem/docker-cicd-test:${{ github.sha }}
+
+      - name: Test Docker Container
+        run: |
+          curl http://127.0.0.1:8000/
