@@ -21,11 +21,10 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build --pull --no-cache -t alirhayem/docker-cicd-test:${{ github.sha }} -t alirhayem/docker-cicd-test:latest .
+          docker build --no-cache -t alirhayem/docker-cicd-test:latest .
 
       - name: Push Docker image
         run: |
-          docker push alirhayem/docker-cicd-test:${{ github.sha }}
           docker push alirhayem/docker-cicd-test:latest
 
       - name: Force stop and remove existing Docker container (if exists)
