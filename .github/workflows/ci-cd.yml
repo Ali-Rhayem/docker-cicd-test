@@ -35,6 +35,9 @@ jobs:
         run: |
           docker run -d -p 8000:8000 --name cicd-test-container alirhayem/docker-cicd-test:${{ github.sha }}
 
+      - name: Wait for Container to Start
+        run: sleep 10
+
       - name: Test Docker Container
         run: |
           curl http://127.0.0.1:8000/
